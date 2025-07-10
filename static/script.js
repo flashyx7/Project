@@ -1,3 +1,4 @@
+
 // Global variables
 let currentUser = null;
 let authToken = null;
@@ -305,12 +306,15 @@ async function saveJob(event) {
     event.preventDefault();
 
     const jobId = document.getElementById('job-id').value;
+    const salaryValue = document.getElementById('job-salary').value;
+    const locationValue = document.getElementById('job-location').value;
+
     const jobData = {
         title: document.getElementById('job-title').value,
         description: document.getElementById('job-description').value,
         skills: document.getElementById('job-skills').value.split(',').map(s => s.trim()),
-        salary: parseFloat(document.getElementById('job-salary').value) || null,
-        location: document.getElementById('job-location').value || null
+        salary: salaryValue ? parseFloat(salaryValue) : null,
+        location: locationValue ? locationValue.trim() : null
     };
 
     try {
@@ -401,12 +405,21 @@ async function saveApplicant(event) {
     event.preventDefault();
 
     const formData = new FormData();
-    formData.append('name', document.getElementById('applicant-name').value);
-    formData.append('email', document.getElementById('applicant-email').value);
-    formData.append('resume', document.getElementById('applicant-resume').files[0]);
+    const name = document.getElementById('applicant-name').value;
+    const email = document.getElementById('applicant-email').value;
+    const resumeFile = document.getElementById('applicant-resume').files[0];
+
+    if (!name || !email || !resumeFile) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('resume', resumeFile);
 
     try {
-        const response = await apiRequest('/applicants/', {
+        const response = await fetch(`${API_BASE}/applicants/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`

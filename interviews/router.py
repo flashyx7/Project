@@ -1,11 +1,12 @@
-
-from fastapi import APIRouter, Depends, HTTPException
+# Adding missing import for Applicant model
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
 from auth.router import get_current_user, require_role
 from auth.models import User
+from applicants.models import Applicant
 from interviews import schemas, crud
 from jobs.crud import get_job
 from applicants.crud import get_applicant
@@ -23,12 +24,12 @@ def schedule_interview(
     job = get_job(db, job_id=interview.position_id)
     if not job or job.company_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to schedule interview for this position")
-    
+
     # Verify applicant exists
     applicant = get_applicant(db, applicant_id=interview.applicant_id)
     if not applicant:
         raise HTTPException(status_code=404, detail="Applicant not found")
-    
+
     return crud.create_interview(db=db, interview=interview)
 
 @router.get("/", response_model=List[schemas.Interview])
@@ -60,10 +61,11 @@ def update_interview(
     interview = crud.get_interview(db, interview_id=interview_id)
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
-    
+
     # Verify the interview belongs to a job owned by this company
     job = get_job(db, job_id=interview.position_id)
     if not job or job.company_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this interview")
-    
+
     return crud.update_interview(db=db, interview_id=interview_id, interview_update=interview_update)
+`
