@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -48,10 +48,10 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     return crud.create_user(db=db, user=user)
 
-@router.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+@router.post("/token", response_model=schemas.Token)
+def login_for_access_token(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Login user and return access token"""
-    authenticated_user = crud.authenticate_user(db, user.username, user.password)
+    authenticated_user = crud.authenticate_user(db, username, password)
     if not authenticated_user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
@@ -65,3 +65,8 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
             "role": authenticated_user.role.value
         }
     }
+
+@router.get("/me", response_model=schemas.User)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user
