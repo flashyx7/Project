@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from applicants.models import Applicant
 from applicants.schemas import ApplicantCreate
 from typing import Dict, Any
+import os
 
 def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resume_text: str = None, skills: list = None, parsed_data: Dict[str, Any] = None, resume_path: str = None):
     parsed_data = parsed_data or {}
@@ -55,3 +56,18 @@ def update_applicant_resume(db: Session, applicant_id: int, resume_text: str, sk
         db.commit()
         db.refresh(db_applicant)
     return db_applicant
+
+def delete_applicant(db: Session, applicant_id: int):
+    db_applicant = db.query(Applicant).filter(Applicant.id == applicant_id).first()
+    if db_applicant:
+        # Delete associated resume file if it exists
+        if db_applicant.resume_path and os.path.exists(db_applicant.resume_path):
+            try:
+                os.remove(db_applicant.resume_path)
+            except OSError:
+                pass  # File might already be deleted or permission issues
+        
+        db.delete(db_applicant)
+        db.commit()
+        return True
+    return False

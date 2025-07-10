@@ -492,12 +492,146 @@ async function loadApplicants() {
                 <p><strong>Experience:</strong> ${applicant.total_experience ? applicant.total_experience + ' years' : 'Not specified'}</p>
                 <div class="card-actions">
                     <button class="btn btn-primary" onclick="viewApplicant(${applicant.id})">View Details</button>
+                    <button class="btn btn-danger" onclick="deleteApplicant(${applicant.id})">Delete</button>
                 </div>
             `;
             applicantsList.appendChild(applicantCard);
         });
     } catch (error) {
         showToast('Error loading applicants', 'error');
+    }
+}
+
+async function viewApplicant(applicantId) {
+    try {
+        const response = await apiRequest(`/applicants/${applicantId}`);
+        if (response.ok) {
+            const applicant = await response.json();
+            showApplicantDetails(applicant);
+        } else {
+            showToast('Error loading applicant details', 'error');
+        }
+    } catch (error) {
+        showToast('Error loading applicant details', 'error');
+    }
+}
+
+function showApplicantDetails(applicant) {
+    const modal = document.getElementById('applicant-details-modal');
+    if (!modal) {
+        createApplicantDetailsModal();
+    }
+    
+    const modalContent = document.getElementById('applicant-details-content');
+    modalContent.innerHTML = `
+        <h2>${applicant.name}</h2>
+        <div class="details-section">
+            <p><strong>Email:</strong> ${applicant.email}</p>
+            <p><strong>Phone:</strong> ${applicant.phone || 'Not provided'}</p>
+            <p><strong>Total Experience:</strong> ${applicant.total_experience ? applicant.total_experience + ' years' : 'Not specified'}</p>
+        </div>
+        
+        ${applicant.skills && applicant.skills.length > 0 ? `
+        <div class="details-section">
+            <h3>Skills</h3>
+            <div class="skills-list">
+                ${applicant.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        
+        ${applicant.education && applicant.education.length > 0 ? `
+        <div class="details-section">
+            <h3>Education</h3>
+            <ul>
+                ${applicant.education.map(edu => `<li>${edu}</li>`).join('')}
+            </ul>
+        </div>
+        ` : ''}
+        
+        ${applicant.experience && applicant.experience.length > 0 ? `
+        <div class="details-section">
+            <h3>Experience</h3>
+            <ul>
+                ${applicant.experience.map(exp => `<li>${exp}</li>`).join('')}
+            </ul>
+        </div>
+        ` : ''}
+        
+        ${applicant.company_names && applicant.company_names.length > 0 ? `
+        <div class="details-section">
+            <h3>Previous Companies</h3>
+            <div class="company-tags">
+                ${applicant.company_names.map(company => `<span class="company-tag">${company}</span>`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        
+        ${applicant.designations && applicant.designations.length > 0 ? `
+        <div class="details-section">
+            <h3>Designations</h3>
+            <div class="designation-tags">
+                ${applicant.designations.map(designation => `<span class="designation-tag">${designation}</span>`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        
+        ${applicant.degrees && applicant.degrees.length > 0 ? `
+        <div class="details-section">
+            <h3>Degrees</h3>
+            <div class="degree-tags">
+                ${applicant.degrees.map(degree => `<span class="degree-tag">${degree}</span>`).join('')}
+            </div>
+        </div>
+        ` : ''}
+        
+        ${applicant.college_names && applicant.college_names.length > 0 ? `
+        <div class="details-section">
+            <h3>Colleges</h3>
+            <div class="college-tags">
+                ${applicant.college_names.map(college => `<span class="college-tag">${college}</span>`).join('')}
+            </div>
+        </div>
+        ` : ''}
+    `;
+    
+    document.getElementById('applicant-details-modal').style.display = 'block';
+}
+
+function createApplicantDetailsModal() {
+    const modal = document.createElement('div');
+    modal.id = 'applicant-details-modal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" onclick="hideApplicantDetails()">&times;</span>
+            <div id="applicant-details-content"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function hideApplicantDetails() {
+    document.getElementById('applicant-details-modal').style.display = 'none';
+}
+
+async function deleteApplicant(applicantId) {
+    if (confirm('Are you sure you want to delete this applicant? This action cannot be undone.')) {
+        try {
+            const response = await apiRequest(`/applicants/${applicantId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showToast('Applicant deleted successfully!', 'success');
+                loadApplicants();
+            } else {
+                const error = await response.json();
+                showToast(error.detail || 'Error deleting applicant', 'error');
+            }
+        } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+        }
     }
 }
 

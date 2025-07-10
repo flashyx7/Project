@@ -96,3 +96,25 @@ def get_applicant(
         raise HTTPException(status_code=403, detail="Not authorized to view this profile")
     
     return applicant
+
+@router.delete("/{applicant_id}")
+def delete_applicant(
+    applicant_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete applicant"""
+    applicant = crud.get_applicant(db, applicant_id=applicant_id)
+    if applicant is None:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    # Check permissions - companies can delete any applicant, applicants can only delete their own
+    if current_user.role.value == "applicant" and applicant.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this profile")
+    
+    # Delete the applicant
+    success = crud.delete_applicant(db, applicant_id=applicant_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete applicant")
+    
+    return {"message": "Applicant deleted successfully"}
