@@ -2,14 +2,25 @@
 from sqlalchemy.orm import Session
 from applicants.models import Applicant
 from applicants.schemas import ApplicantCreate
+from typing import Dict, Any
 
-def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resume_text: str = None, skills: list = None):
+def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resume_text: str = None, skills: list = None, parsed_data: Dict[str, Any] = None):
+    parsed_data = parsed_data or {}
+    
     db_applicant = Applicant(
         user_id=user_id,
         name=applicant.name,
         email=applicant.email,
         resume_text=resume_text,
-        skills=skills or []
+        skills=skills or [],
+        phone=parsed_data.get('mobile_number'),
+        education=parsed_data.get('education', []),
+        experience=parsed_data.get('experience', []),
+        company_names=parsed_data.get('company_names', []),
+        designations=parsed_data.get('designation', []),
+        degrees=parsed_data.get('degree', []),
+        college_names=parsed_data.get('college_name', []),
+        total_experience=parsed_data.get('total_experience', 0.0)
     )
     db.add(db_applicant)
     db.commit()
@@ -25,11 +36,21 @@ def get_applicant(db: Session, applicant_id: int):
 def get_applicant_by_user_id(db: Session, user_id: int):
     return db.query(Applicant).filter(Applicant.user_id == user_id).first()
 
-def update_applicant_resume(db: Session, applicant_id: int, resume_text: str, skills: list):
+def update_applicant_resume(db: Session, applicant_id: int, resume_text: str, skills: list, parsed_data: Dict[str, Any] = None):
+    parsed_data = parsed_data or {}
+    
     db_applicant = db.query(Applicant).filter(Applicant.id == applicant_id).first()
     if db_applicant:
         db_applicant.resume_text = resume_text
         db_applicant.skills = skills
+        db_applicant.phone = parsed_data.get('mobile_number')
+        db_applicant.education = parsed_data.get('education', [])
+        db_applicant.experience = parsed_data.get('experience', [])
+        db_applicant.company_names = parsed_data.get('company_names', [])
+        db_applicant.designations = parsed_data.get('designation', [])
+        db_applicant.degrees = parsed_data.get('degree', [])
+        db_applicant.college_names = parsed_data.get('college_name', [])
+        db_applicant.total_experience = parsed_data.get('total_experience', 0.0)
         db.commit()
         db.refresh(db_applicant)
     return db_applicant

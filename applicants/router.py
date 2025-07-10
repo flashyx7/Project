@@ -32,16 +32,21 @@ async def register_applicant(
     try:
         # Read and parse resume
         resume_bytes = await resume.read()
-        resume_text, skills = parse_resume(resume_bytes)
+        resume_text, skills, parsed_data = parse_resume(resume_bytes)
+        
+        # Use parsed name and email if not provided or if parsed data is better
+        parsed_name = parsed_data.get('name', name) if parsed_data.get('name') else name
+        parsed_email = parsed_data.get('email', email) if parsed_data.get('email') else email
         
         # Create applicant profile
-        applicant_data = schemas.ApplicantCreate(name=name, email=email)
+        applicant_data = schemas.ApplicantCreate(name=parsed_name, email=parsed_email)
         return crud.create_applicant(
             db=db, 
             applicant=applicant_data, 
             user_id=current_user.id,
             resume_text=resume_text,
-            skills=skills
+            skills=skills,
+            parsed_data=parsed_data
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing resume: {str(e)}")
