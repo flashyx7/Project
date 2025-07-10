@@ -95,3 +95,30 @@ def download_offer_letter(
         media_type='application/pdf',
         filename=os.path.basename(offer.pdf_path)
     )
+
+@router.delete("/{offer_id}")
+def delete_offer(
+    offer_id: int,
+    current_user: User = Depends(require_role("company")),
+    db: Session = Depends(get_db)
+):
+    """Delete an offer letter"""
+    offer = crud.get_offer_letter(db, offer_id=offer_id)
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer letter not found")
+
+    # Check authorization - only company that created the offer can delete it
+    job = get_job(db, job_id=offer.position_id)
+    if not job or job.company_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this offer letter")
+
+    # Delete PDF file if it exists
+    if os.path.exists(offer.pdf_path):
+        os.remove(offer.pdf_path)
+
+    # Delete from database
+    success = crud.delete_offer_letter(db, offer_id=offer_id)
+    if success:
+        return {"message": "Offer letter deleted successfully"}
+    else:
+        raise HTTPException(status_code=500, detail="Error deleting offer letter")

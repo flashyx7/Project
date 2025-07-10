@@ -13,6 +13,8 @@ class OfferLetter(BaseModel):
     applicant_id: int
     position_id: int
     pdf_path: str
+    salary: float = None
+    start_date: str = None
     created_at: datetime
     
     class Config:
