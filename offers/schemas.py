@@ -1,6 +1,6 @@
-
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class OfferLetterCreate(BaseModel):
     applicant_id: int
@@ -13,9 +13,9 @@ class OfferLetter(BaseModel):
     applicant_id: int
     position_id: int
     pdf_path: str
-    salary: float = None
-    start_date: str = None
+    salary: Optional[float] = None
+    start_date: Optional[str] = None
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
