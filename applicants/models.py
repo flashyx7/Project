@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -10,9 +10,16 @@ class Applicant(Base):
     name = Column(String, index=True)
     email = Column(String, index=True)
     phone = Column(String, nullable=True)
-    resume_path = Column(String)
-    skills = Column(JSON, nullable=True)  # Extracted skills from resume
-    total_experience = Column(Integer, nullable=True)
+    resume_path = Column(String, nullable=True)
+    resume_text = Column(String, nullable=True)
+    skills = Column(JSON, nullable=True, default=list)
+    education = Column(JSON, nullable=True, default=list)
+    experience = Column(JSON, nullable=True, default=list)
+    company_names = Column(JSON, nullable=True, default=list)
+    designations = Column(JSON, nullable=True, default=list)
+    degrees = Column(JSON, nullable=True, default=list)
+    college_names = Column(JSON, nullable=True, default=list)
+    total_experience = Column(Float, nullable=True, default=0.0)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
