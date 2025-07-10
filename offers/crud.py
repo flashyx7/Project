@@ -3,8 +3,12 @@ from offers.models import OfferLetter
 from offers.schemas import OfferLetterCreate
 from typing import List
 
-def create_offer_letter(db: Session, offer: OfferLetterCreate):
-    db_offer = OfferLetter(**offer.dict())
+def create_offer_letter(db: Session, offer: OfferLetterCreate, pdf_path: str):
+    db_offer = OfferLetter(
+        applicant_id=offer.applicant_id,
+        position_id=offer.position_id,
+        pdf_path=pdf_path
+    )
     db.add(db_offer)
     db.commit()
     db.refresh(db_offer)

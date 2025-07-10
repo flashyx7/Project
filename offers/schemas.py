@@ -5,8 +5,8 @@ from datetime import datetime
 class OfferLetterCreate(BaseModel):
     applicant_id: int
     position_id: int
-    salary: float = None
-    start_date: str = None
+    salary: float
+    start_date: str
 
 class OfferLetter(BaseModel):
     id: int

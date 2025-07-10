@@ -4,6 +4,11 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from database import Base
+
 class OfferLetter(Base):
     __tablename__ = "offers"
 
@@ -11,6 +16,8 @@ class OfferLetter(Base):
     applicant_id = Column(Integer, ForeignKey("applicants.id"))
     position_id = Column(Integer, ForeignKey("jobs.id"))
     pdf_path = Column(String)
+    salary = Column(Float, nullable=True)
+    start_date = Column(String, nullable=True)
     created_at = Column(DateTime, default=func.now())
     
     # Relationships
