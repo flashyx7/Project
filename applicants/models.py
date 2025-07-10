@@ -1,6 +1,7 @@
 
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, JSON, ForeignKey, Float, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from database import Base
 
 class Applicant(Base):
@@ -21,6 +22,7 @@ class Applicant(Base):
     college_names = Column(JSON, nullable=True, default=list)
     total_experience = Column(Float, nullable=True, default=0.0)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     user = relationship("User", back_populates="applicant_profile")

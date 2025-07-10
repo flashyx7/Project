@@ -22,7 +22,7 @@ class Applicant(BaseModel):
     degrees: Optional[List[str]]
     college_names: Optional[List[str]]
     total_experience: Optional[float]
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
