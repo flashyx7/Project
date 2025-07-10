@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import os
 import uvicorn
 
@@ -34,8 +35,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for offer letters
+# Mount static files for offer letters and UI
 app.mount("/offer_letters", StaticFiles(directory="offer_letters"), name="offer_letters")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -47,6 +49,10 @@ app.include_router(offers_router, prefix="/offers", tags=["Offers"])
 
 @app.get("/")
 async def root():
+    return FileResponse("static/index.html")
+
+@app.get("/api")
+async def api_root():
     return {"message": "Welcome to Recruitment Tracker System", "docs": "/docs"}
 
 if __name__ == "__main__":
