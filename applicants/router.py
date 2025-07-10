@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -13,8 +13,8 @@ router = APIRouter()
 
 @router.post("/", response_model=schemas.Applicant)
 async def register_applicant(
-    name: str,
-    email: str,
+    name: str = Form(...),
+    email: str = Form(...),
     resume: UploadFile = File(...),
     current_user: User = Depends(require_role("applicant")),
     db: Session = Depends(get_db)
