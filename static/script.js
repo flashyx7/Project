@@ -1,4 +1,3 @@
-
 // Global variables
 let currentUser = null;
 let authToken = null;
@@ -22,12 +21,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Authentication Functions
-function showAuthTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+function showAuthTab(tabName) {
+    // Hide all auth forms
+    document.querySelectorAll('.auth-form').forEach(form => {
+        form.classList.remove('active');
+    });
 
-    document.querySelector(`[onclick="showAuthTab('${tab}')"]`).classList.add('active');
-    document.getElementById(`${tab}-form`).classList.add('active');
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected form and activate tab
+    document.getElementById(`${tabName}-form`).classList.add('active');
+    event.target.classList.add('active');
 }
 
 async function login(event) {
@@ -37,29 +44,36 @@ async function login(event) {
     const password = document.getElementById('login-password').value;
 
     try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const response = await fetch(`${API_BASE}/auth/token`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify({ username, password })
+            body: new URLSearchParams({
+                username: username,
+                password: password
+            })
         });
 
-        const data = await response.json();
-
         if (response.ok) {
+            const data = await response.json();
             authToken = data.access_token;
-            currentUser = data.user;
 
-            localStorage.setItem('authToken', authToken);
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            // Get user profile
+            const userResponse = await apiRequest('/auth/me');
+            if (userResponse.ok) {
+                currentUser = await userResponse.json();
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-            showToast('Login successful!', 'success');
-            showLoggedInState();
-            showSection('dashboard');
-            loadDashboardData();
+                showLoggedInState();
+                showSection('dashboard');
+                loadDashboardData();
+                showToast('Login successful!', 'success');
+            }
         } else {
-            showToast(data.detail || 'Login failed', 'error');
+            const error = await response.json();
+            showToast(error.detail || 'Login failed', 'error');
         }
     } catch (error) {
         showToast('Network error. Please try again.', 'error');
@@ -71,6 +85,7 @@ async function register(event) {
 
     const username = document.getElementById('register-username').value;
     const password = document.getElementById('register-password').value;
+    const email = document.getElementById('register-email').value;
     const role = document.getElementById('register-role').value;
 
     try {
@@ -79,16 +94,20 @@ async function register(event) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password, role })
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                email: email,
+                role: role
+            })
         });
-
-        const data = await response.json();
 
         if (response.ok) {
             showToast('Registration successful! Please login.', 'success');
             showAuthTab('login');
         } else {
-            showToast(data.detail || 'Registration failed', 'error');
+            const error = await response.json();
+            showToast(error.detail || 'Registration failed', 'error');
         }
     } catch (error) {
         showToast('Network error. Please try again.', 'error');
@@ -107,42 +126,24 @@ function logout() {
 }
 
 function showLoggedInState() {
-    document.getElementById('auth-link').style.display = 'none';
-    document.getElementById('dashboard-link').style.display = 'block';
-    document.getElementById('logout-link').style.display = 'block';
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'block';
 
-    if (currentUser.role === 'company') {
-        document.getElementById('jobs-link').style.display = 'block';
-        document.getElementById('applicants-link').style.display = 'block';
-        document.getElementById('interviews-link').style.display = 'block';
-        document.getElementById('offers-link').style.display = 'block';
-        document.getElementById('matching-link').style.display = 'block';
-
+    // Show/hide buttons based on user role
+    if (currentUser && currentUser.role === 'company') {
         document.getElementById('create-job-btn').style.display = 'block';
-        document.getElementById('create-interview-btn').style.display = 'block';
-        document.getElementById('create-offer-btn').style.display = 'block';
     } else {
-        document.getElementById('jobs-link').style.display = 'block';
-        document.getElementById('applicants-link').style.display = 'block';
-        document.getElementById('interviews-link').style.display = 'block';
-        document.getElementById('offers-link').style.display = 'block';
-        document.getElementById('matching-link').style.display = 'block';
-
         document.getElementById('create-applicant-btn').style.display = 'block';
     }
 }
 
 function showLoggedOutState() {
-    document.getElementById('auth-link').style.display = 'block';
-    document.querySelectorAll('.nav-link:not(#auth-link)').forEach(link => {
-        link.style.display = 'none';
-    });
-    document.querySelectorAll('[id$="-btn"]').forEach(btn => {
-        btn.style.display = 'none';
-    });
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('main-nav').style.display = 'none';
+    document.getElementById('main-content').style.display = 'none';
 }
 
-// Navigation Functions
 function showSection(sectionName) {
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
@@ -152,7 +153,10 @@ function showSection(sectionName) {
     });
 
     document.getElementById(`${sectionName}-section`).classList.add('active');
-    document.getElementById(`${sectionName}-link`).classList.add('active');
+    const navLink = document.getElementById(`${sectionName}-link`);
+    if (navLink) {
+        navLink.classList.add('active');
+    }
 
     // Load data for the section
     switch(sectionName) {
@@ -170,6 +174,9 @@ function showSection(sectionName) {
             break;
         case 'matching':
             loadMatching();
+            break;
+        case 'dashboard':
+            loadDashboardData();
             break;
     }
 }
@@ -205,81 +212,56 @@ async function apiRequest(url, options = {}) {
 // Dashboard Functions
 async function loadDashboardData() {
     try {
-        // Load stats
-        const [jobsResponse, applicantsResponse, interviewsResponse] = await Promise.all([
+        // Load stats based on user role
+        if (currentUser && currentUser.role === 'company') {
+            loadCompanyDashboard();
+        } else {
+            loadApplicantDashboard();
+        }
+    } catch (error) {
+        showToast('Error loading dashboard data', 'error');
+    }
+}
+
+async function loadCompanyDashboard() {
+    try {
+        const [jobsResponse, interviewsResponse] = await Promise.all([
             apiRequest('/jobs/'),
-            apiRequest('/applicants/'),
             apiRequest('/interviews/')
         ]);
 
-        if (jobsResponse.ok) {
+        if (jobsResponse.ok && interviewsResponse.ok) {
             const jobs = await jobsResponse.json();
-            document.getElementById('jobs-count').textContent = jobs.length;
-        }
-
-        if (applicantsResponse.ok) {
-            const applicants = await applicantsResponse.json();
-            document.getElementById('applicants-count').textContent = applicants.length;
-        }
-
-        if (interviewsResponse.ok) {
             const interviews = await interviewsResponse.json();
-            document.getElementById('interviews-count').textContent = interviews.length;
+
+            document.getElementById('total-jobs').textContent = jobs.length;
+            document.getElementById('total-interviews').textContent = interviews.length;
         }
-
-        // Load recent activities (mock data for now)
-        const activitiesList = document.getElementById('activities-list');
-        activitiesList.innerHTML = `
-            <div class="activity-item">
-                <div>New applicant registered</div>
-                <div class="activity-time">2 hours ago</div>
-            </div>
-            <div class="activity-item">
-                <div>Interview scheduled</div>
-                <div class="activity-time">4 hours ago</div>
-            </div>
-            <div class="activity-item">
-                <div>Job position created</div>
-                <div class="activity-time">1 day ago</div>
-            </div>
-        `;
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console.error('Error loading company dashboard:', error);
     }
 }
 
-// Jobs Functions
-async function loadJobs() {
+async function loadApplicantDashboard() {
     try {
-        const response = await apiRequest('/jobs/');
-        const jobs = await response.json();
+        const [interviewsResponse, offersResponse] = await Promise.all([
+            apiRequest('/interviews/'),
+            apiRequest('/offers/')
+        ]);
 
-        const jobsList = document.getElementById('jobs-list');
-        jobsList.innerHTML = '';
+        if (interviewsResponse.ok && offersResponse.ok) {
+            const interviews = await interviewsResponse.json();
+            const offers = await offersResponse.json();
 
-        jobs.forEach(job => {
-            const jobCard = document.createElement('div');
-            jobCard.className = 'card';
-            jobCard.innerHTML = `
-                <h3>${job.title}</h3>
-                <p><strong>Description:</strong> ${job.description}</p>
-                <p><strong>Skills:</strong> ${job.skills ? job.skills.join(', ') : 'N/A'}</p>
-                <p><strong>Salary:</strong> ${job.salary ? '$' + job.salary.toLocaleString() : 'Not specified'}</p>
-                <p><strong>Location:</strong> ${job.location || 'Not specified'}</p>
-                <div class="card-actions">
-                    ${currentUser.role === 'company' ? `
-                        <button class="btn btn-primary" onclick="editJob(${job.id})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteJob(${job.id})">Delete</button>
-                    ` : ''}
-                </div>
-            `;
-            jobsList.appendChild(jobCard);
-        });
+            document.getElementById('total-interviews').textContent = interviews.length;
+            document.getElementById('total-offers').textContent = offers.length;
+        }
     } catch (error) {
-        showToast('Error loading jobs', 'error');
+        console.error('Error loading applicant dashboard:', error);
     }
 }
 
+// Job Functions
 function showJobForm(jobId = null) {
     const modal = document.getElementById('job-form');
     const form = modal.querySelector('form');
@@ -287,7 +269,6 @@ function showJobForm(jobId = null) {
 
     if (jobId) {
         title.textContent = 'Edit Job Position';
-        // Load job data for editing
         loadJobForEdit(jobId);
     } else {
         title.textContent = 'Create Job Position';
@@ -300,6 +281,23 @@ function showJobForm(jobId = null) {
 
 function hideJobForm() {
     document.getElementById('job-form').style.display = 'none';
+}
+
+async function loadJobForEdit(jobId) {
+    try {
+        const response = await apiRequest(`/jobs/${jobId}`);
+        if (response.ok) {
+            const job = await response.json();
+            document.getElementById('job-id').value = job.id;
+            document.getElementById('job-title').value = job.title;
+            document.getElementById('job-description').value = job.description;
+            document.getElementById('job-skills').value = job.skills.join(', ');
+            document.getElementById('job-salary').value = job.salary || '';
+            document.getElementById('job-location').value = job.location || '';
+        }
+    } catch (error) {
+        showToast('Error loading job data', 'error');
+    }
 }
 
 async function saveJob(event) {
@@ -344,23 +342,60 @@ async function saveJob(event) {
     }
 }
 
-async function deleteJob(jobId) {
-    if (!confirm('Are you sure you want to delete this job?')) return;
-
+async function loadJobs() {
     try {
-        const response = await apiRequest(`/jobs/${jobId}`, {
-            method: 'DELETE'
-        });
-
+        const response = await apiRequest('/jobs/');
         if (response.ok) {
-            showToast('Job deleted successfully!', 'success');
-            loadJobs();
-        } else {
-            const error = await response.json();
-            showToast(error.detail || 'Error deleting job', 'error');
+            const jobs = await response.json();
+            displayJobs(jobs);
         }
     } catch (error) {
-        showToast('Network error. Please try again.', 'error');
+        showToast('Error loading jobs', 'error');
+    }
+}
+
+function displayJobs(jobs) {
+    const jobsList = document.getElementById('jobs-list');
+    if (!jobsList) return;
+
+    jobsList.innerHTML = '';
+
+    jobs.forEach(job => {
+        const jobCard = document.createElement('div');
+        jobCard.className = 'card';
+        jobCard.innerHTML = `
+            <h3>${job.title}</h3>
+            <p><strong>Description:</strong> ${job.description}</p>
+            <p><strong>Skills:</strong> ${job.skills.join(', ')}</p>
+            ${job.salary ? `<p><strong>Salary:</strong> $${job.salary}</p>` : ''}
+            ${job.location ? `<p><strong>Location:</strong> ${job.location}</p>` : ''}
+            <div class="card-actions">
+                ${currentUser && currentUser.role === 'company' ? `
+                    <button class="btn btn-secondary" onclick="showJobForm(${job.id})">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteJob(${job.id})">Delete</button>
+                ` : ''}
+            </div>
+        `;
+        jobsList.appendChild(jobCard);
+    });
+}
+
+async function deleteJob(jobId) {
+    if (confirm('Are you sure you want to delete this job?')) {
+        try {
+            const response = await apiRequest(`/jobs/${jobId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showToast('Job deleted successfully!', 'success');
+                loadJobs();
+            } else {
+                showToast('Error deleting job', 'error');
+            }
+        } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+        }
     }
 }
 

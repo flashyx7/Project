@@ -68,4 +68,3 @@ def update_interview(
         raise HTTPException(status_code=403, detail="Not authorized to update this interview")
 
     return crud.update_interview(db=db, interview_id=interview_id, interview_update=interview_update)
-`
