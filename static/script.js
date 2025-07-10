@@ -66,11 +66,14 @@ async function login(event) {
         if (response.ok) {
             const data = await response.json();
             authToken = data.access_token;
+            console.log('Login successful, token received');
 
             // Get user profile
             const userResponse = await apiRequest('/auth/me');
             if (userResponse.ok) {
                 currentUser = await userResponse.json();
+                console.log('User profile loaded:', currentUser);
+                
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -78,9 +81,13 @@ async function login(event) {
                 showSection('dashboard');
                 loadDashboardData();
                 showToast('Login successful!', 'success');
+            } else {
+                console.error('Failed to get user profile');
+                showToast('Failed to load user profile', 'error');
             }
         } else {
             const error = await response.json();
+            console.error('Login failed:', error);
             showToast(error.detail || 'Login failed', 'error');
         }
     } catch (error) {
@@ -145,21 +152,53 @@ function logout() {
 
 function showLoggedInState() {
     document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('main-nav').style.display = 'flex';
-    document.getElementById('main-content').style.display = 'block';
+    
+    // Show all navigation links
+    const navLinks = ['dashboard-link', 'jobs-link', 'applicants-link', 'interviews-link', 'offers-link', 'matching-link', 'logout-link'];
+    navLinks.forEach(linkId => {
+        const link = document.getElementById(linkId);
+        if (link) link.style.display = 'inline-block';
+    });
+    
+    // Hide auth link
+    const authLink = document.getElementById('auth-link');
+    if (authLink) authLink.style.display = 'none';
 
     // Show/hide buttons based on user role
     if (currentUser && currentUser.role === 'company') {
-        document.getElementById('create-job-btn').style.display = 'block';
+        const createJobBtn = document.getElementById('create-job-btn');
+        const createInterviewBtn = document.getElementById('create-interview-btn');
+        const createOfferBtn = document.getElementById('create-offer-btn');
+        
+        if (createJobBtn) createJobBtn.style.display = 'block';
+        if (createInterviewBtn) createInterviewBtn.style.display = 'block';
+        if (createOfferBtn) createOfferBtn.style.display = 'block';
     } else {
-        document.getElementById('create-applicant-btn').style.display = 'block';
+        const createApplicantBtn = document.getElementById('create-applicant-btn');
+        if (createApplicantBtn) createApplicantBtn.style.display = 'block';
     }
 }
 
 function showLoggedOutState() {
     document.getElementById('auth-section').style.display = 'block';
-    document.getElementById('main-nav').style.display = 'none';
-    document.getElementById('main-content').style.display = 'none';
+    
+    // Hide all navigation links except auth
+    const navLinks = ['dashboard-link', 'jobs-link', 'applicants-link', 'interviews-link', 'offers-link', 'matching-link', 'logout-link'];
+    navLinks.forEach(linkId => {
+        const link = document.getElementById(linkId);
+        if (link) link.style.display = 'none';
+    });
+    
+    // Show auth link
+    const authLink = document.getElementById('auth-link');
+    if (authLink) authLink.style.display = 'inline-block';
+    
+    // Hide all create buttons
+    const buttons = ['create-job-btn', 'create-applicant-btn', 'create-interview-btn', 'create-offer-btn'];
+    buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.style.display = 'none';
+    });
 }
 
 function showSection(sectionName) {
@@ -252,8 +291,12 @@ async function loadCompanyDashboard() {
             const jobs = await jobsResponse.json();
             const interviews = await interviewsResponse.json();
 
-            document.getElementById('total-jobs').textContent = jobs.length;
-            document.getElementById('total-interviews').textContent = interviews.length;
+            // Update dashboard stats if elements exist
+            const jobsElement = document.getElementById('jobs-count');
+            const interviewsElement = document.getElementById('interviews-count');
+            
+            if (jobsElement) jobsElement.textContent = jobs.length;
+            if (interviewsElement) interviewsElement.textContent = interviews.length;
         }
     } catch (error) {
         console.error('Error loading company dashboard:', error);
@@ -271,8 +314,12 @@ async function loadApplicantDashboard() {
             const interviews = await interviewsResponse.json();
             const offers = await offersResponse.json();
 
-            document.getElementById('total-interviews').textContent = interviews.length;
-            document.getElementById('total-offers').textContent = offers.length;
+            // Update dashboard stats if elements exist
+            const interviewsElement = document.getElementById('interviews-count');
+            const offersElement = document.getElementById('offers-count');
+            
+            if (interviewsElement) interviewsElement.textContent = interviews.length;
+            if (offersElement) offersElement.textContent = offers.length;
         }
     } catch (error) {
         console.error('Error loading applicant dashboard:', error);
