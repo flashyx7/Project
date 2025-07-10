@@ -1,3 +1,4 @@
+
 // Global variables
 let currentUser = null;
 let authToken = null;
