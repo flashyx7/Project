@@ -1,6 +1,7 @@
 
 from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base
 import enum
 
@@ -19,6 +20,7 @@ class Interview(Base):
     date_time = Column(DateTime)
     status = Column(Enum(InterviewStatus), default=InterviewStatus.scheduled)
     notes = Column(String, nullable=True)
+    created_at = Column(DateTime, default=func.now())
     
     # Relationships
     applicant = relationship("Applicant", back_populates="interviews")
