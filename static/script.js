@@ -35,7 +35,14 @@ function showAuthTab(tabName) {
 
     // Show selected form and activate tab
     document.getElementById(`${tabName}-form`).classList.add('active');
-    event.target.classList.add('active');
+    
+    // Find and activate the correct tab button
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        if (btn.textContent.toLowerCase() === tabName.toLowerCase()) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 async function login(event) {
@@ -89,6 +96,12 @@ async function register(event) {
     const email = document.getElementById('register-email').value;
     const role = document.getElementById('register-role').value;
 
+    // Validate required fields
+    if (!username || !password || !email || !role) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
     try {
         const response = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
@@ -96,9 +109,9 @@ async function register(event) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                username: username,
+                username: username.trim(),
                 password: password,
-                email: email,
+                email: email.trim(),
                 role: role
             })
         });
@@ -106,11 +119,15 @@ async function register(event) {
         if (response.ok) {
             showToast('Registration successful! Please login.', 'success');
             showAuthTab('login');
+            // Clear the form
+            document.getElementById('register-form').querySelector('form').reset();
         } else {
             const error = await response.json();
+            console.error('Registration error:', error);
             showToast(error.detail || 'Registration failed', 'error');
         }
     } catch (error) {
+        console.error('Network error during registration:', error);
         showToast('Network error. Please try again.', 'error');
     }
 }

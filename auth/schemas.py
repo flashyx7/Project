@@ -1,7 +1,9 @@
-
 from pydantic import BaseModel
-from typing import Optional
-from auth.models import UserRole
+from enum import Enum
+
+class UserRole(str, Enum):
+    company = "company"
+    applicant = "applicant"
 
 class UserBase(BaseModel):
     username: str
