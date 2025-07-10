@@ -15,4 +15,4 @@ class OfferLetter(Base):
     
     # Relationships
     applicant = relationship("Applicant", back_populates="offers")
-    position = relationship("Job", back_populates="offers")
+    position = relationship("JobPosition", back_populates="offers")

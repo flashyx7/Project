@@ -1,9 +1,10 @@
 
-from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base
 
-class Job(Base):
+class JobPosition(Base):
     __tablename__ = "jobs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -13,6 +14,7 @@ class Job(Base):
     salary = Column(Float, nullable=True)
     location = Column(String, nullable=True)
     company_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=func.now())
     
     # Relationships
     company = relationship("User", back_populates="jobs")

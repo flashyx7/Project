@@ -22,4 +22,4 @@ class Interview(Base):
     
     # Relationships
     applicant = relationship("Applicant", back_populates="interviews")
-    position = relationship("Job", back_populates="interviews")
+    position = relationship("JobPosition", back_populates="interviews")

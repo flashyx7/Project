@@ -18,5 +18,5 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     
     # Relationships
-    jobs = relationship("Job", back_populates="company")
+    jobs = relationship("JobPosition", back_populates="company")
     applicant_profile = relationship("Applicant", back_populates="user", uselist=False)

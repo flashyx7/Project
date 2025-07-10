@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database import SessionLocal, engine, Base
 from auth.models import User, UserRole
-from jobs.models import Job
+from jobs.models import JobPosition
 from applicants.models import Applicant
 from interviews.models import Interview, InterviewStatus
 from offers.models import OfferLetter
@@ -60,7 +60,7 @@ def create_sample_data():
         
         # Create sample jobs
         jobs = [
-            Job(
+            JobPosition(
                 title="Senior Python Developer",
                 description="We are looking for an experienced Python developer to join our team. You will be responsible for developing web applications using FastAPI and Django.",
                 skills=["Python", "FastAPI", "Django", "PostgreSQL", "REST API"],
@@ -68,7 +68,7 @@ def create_sample_data():
                 location="New York, NY",
                 company_id=company_user.id
             ),
-            Job(
+            JobPosition(
                 title="Frontend React Developer",
                 description="Join our frontend team to build amazing user interfaces using React and modern JavaScript technologies.",
                 skills=["React", "JavaScript", "TypeScript", "CSS", "HTML"],
@@ -76,7 +76,7 @@ def create_sample_data():
                 location="San Francisco, CA",
                 company_id=company_user.id
             ),
-            Job(
+            JobPosition(
                 title="Data Scientist",
                 description="Analyze large datasets and build machine learning models to drive business insights.",
                 skills=["Python", "Machine Learning", "Pandas", "NumPy", "SQL"],
@@ -84,7 +84,7 @@ def create_sample_data():
                 location="Remote",
                 company_id=company_user.id
             ),
-            Job(
+            JobPosition(
                 title="DevOps Engineer",
                 description="Manage cloud infrastructure and CI/CD pipelines for our applications.",
                 skills=["AWS", "Docker", "Kubernetes", "Jenkins", "Python"],
