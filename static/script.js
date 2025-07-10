@@ -522,7 +522,7 @@ async function loadOffers() {
 
 function showOfferForm() {
     loadApplicantsForSelect('offer-applicant');
-    loadJobsForSelect('offer-position');
+    loadJobsForSelect('interview-position');
     document.getElementById('offer-form').style.display = 'block';
 }
 
@@ -669,3 +669,121 @@ window.onclick = function(event) {
         }
     });
 }
+
+// API base URL
+const API_BASE = '';
+
+// Authentication functions
+async function register() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+
+    if (!username || !password || !role) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password, role }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Registration successful! Please login.');
+            showLogin();
+        } else {
+            alert(data.detail || 'Registration failed');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Network error. Please try again.');
+    }
+}
+
+async function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!username || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            showDashboard();
+        } else {
+            alert(data.detail || 'Login failed');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Network error. Please try again.');
+    }
+}
+
+// UI Navigation functions
+function showLogin() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'block';
+    document.getElementById('registerContainer').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'none';
+}
+
+function showRegister() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('registerContainer').style.display = 'block';
+    document.getElementById('dashboardContainer').style.display = 'none';
+}
+
+function showDashboard() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('registerContainer').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'block';
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${user.username}!`;
+        document.getElementById('userRole').textContent = `Role: ${user.role}`;
+    }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.getElementById('authContainer').style.display = 'block';
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('registerContainer').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'none';
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is already logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+        showDashboard();
+    } else {
+        document.getElementById('authContainer').style.display = 'block';
+    }
+});

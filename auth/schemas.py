@@ -5,10 +5,10 @@ from auth.models import UserRole
 
 class UserBase(BaseModel):
     username: str
-    role: UserRole
 
 class UserCreate(UserBase):
     password: str
+    role: UserRole
 
 class UserLogin(BaseModel):
     username: str
@@ -16,6 +16,7 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
+    role: UserRole
     is_active: bool
 
     class Config:
