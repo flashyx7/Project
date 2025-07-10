@@ -151,7 +151,8 @@ function logout() {
 }
 
 function showLoggedInState() {
-    document.getElementById('auth-section').style.display = 'none';
+    const authSection = document.getElementById('auth-section');
+    if (authSection) authSection.style.display = 'none';
     
     // Show all navigation links
     const navLinks = ['dashboard-link', 'jobs-link', 'applicants-link', 'interviews-link', 'offers-link', 'matching-link', 'logout-link'];
@@ -163,6 +164,13 @@ function showLoggedInState() {
     // Hide auth link
     const authLink = document.getElementById('auth-link');
     if (authLink) authLink.style.display = 'none';
+
+    // Hide all buttons first
+    const allButtons = ['create-job-btn', 'create-applicant-btn', 'create-interview-btn', 'create-offer-btn'];
+    allButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.style.display = 'none';
+    });
 
     // Show/hide buttons based on user role
     if (currentUser && currentUser.role === 'company') {
@@ -531,11 +539,27 @@ async function saveApplicant(event) {
             showToast('Applicant profile created successfully!', 'success');
             hideApplicantForm();
             loadApplicants();
+            document.getElementById('applicant-form').querySelector('form').reset();
         } else {
             const error = await response.json();
-            showToast(error.detail || 'Error creating applicant profile', 'error');
+            console.error('Applicant creation error:', error);
+            
+            // Handle different error formats
+            let errorMessage = 'Error creating applicant profile';
+            if (error.detail) {
+                if (typeof error.detail === 'string') {
+                    errorMessage = error.detail;
+                } else if (Array.isArray(error.detail)) {
+                    errorMessage = error.detail.map(err => err.msg || err.message || JSON.stringify(err)).join(', ');
+                } else {
+                    errorMessage = JSON.stringify(error.detail);
+                }
+            }
+            
+            showToast(errorMessage, 'error');
         }
     } catch (error) {
+        console.error('Network error during applicant creation:', error);
         showToast('Network error. Please try again.', 'error');
     }
 }
