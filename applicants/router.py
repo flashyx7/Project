@@ -2,6 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List
+import os
+import uuid
 
 from database import get_db
 from auth.router import get_current_user, require_role
@@ -30,8 +32,17 @@ async def register_applicant(
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
     
     try:
-        # Read and parse resume
+        # Create unique filename for resume
+        file_extension = os.path.splitext(resume.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        resume_path = os.path.join("uploads", unique_filename)
+        
+        # Save resume file to local storage
         resume_bytes = await resume.read()
+        with open(resume_path, "wb") as buffer:
+            buffer.write(resume_bytes)
+        
+        # Parse resume
         resume_text, skills, parsed_data = parse_resume(resume_bytes)
         
         # Use parsed name and email if not provided or if parsed data is better
@@ -46,7 +57,8 @@ async def register_applicant(
             user_id=current_user.id,
             resume_text=resume_text,
             skills=skills,
-            parsed_data=parsed_data
+            parsed_data=parsed_data,
+            resume_path=resume_path
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing resume: {str(e)}")

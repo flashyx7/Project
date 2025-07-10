@@ -4,7 +4,7 @@ from applicants.models import Applicant
 from applicants.schemas import ApplicantCreate
 from typing import Dict, Any
 
-def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resume_text: str = None, skills: list = None, parsed_data: Dict[str, Any] = None):
+def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resume_text: str = None, skills: list = None, parsed_data: Dict[str, Any] = None, resume_path: str = None):
     parsed_data = parsed_data or {}
     
     db_applicant = Applicant(
@@ -20,7 +20,8 @@ def create_applicant(db: Session, applicant: ApplicantCreate, user_id: int, resu
         designations=parsed_data.get('designation', []),
         degrees=parsed_data.get('degree', []),
         college_names=parsed_data.get('college_name', []),
-        total_experience=parsed_data.get('total_experience', 0.0)
+        total_experience=parsed_data.get('total_experience', 0.0),
+        resume_path=resume_path
     )
     db.add(db_applicant)
     db.commit()
