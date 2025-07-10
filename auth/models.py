@@ -1,15 +1,22 @@
 
-from sqlalchemy import Column, String, Enum
-from core.models import BaseModel
+from sqlalchemy import Column, Integer, String, Boolean, Enum
+from sqlalchemy.orm import relationship
+from database import Base
 import enum
 
-class UserRole(str, enum.Enum):
-    COMPANY = "company"
-    APPLICANT = "applicant"
+class UserRole(enum.Enum):
+    company = "company"
+    applicant = "applicant"
 
-class User(BaseModel):
+class User(Base):
     __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(Enum(UserRole))
+    is_active = Column(Boolean, default=True)
     
-    username = Column(String(50), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), nullable=False)
+    # Relationships
+    jobs = relationship("Job", back_populates="company")
+    applicant_profile = relationship("Applicant", back_populates="user", uselist=False)

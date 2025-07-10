@@ -1,29 +1,21 @@
 
-from sqlalchemy import Column, String, Text, JSON, Integer, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, JSON, ForeignKey
 from sqlalchemy.orm import relationship
-from core.models import BaseModel
+from database import Base
 
-class Applicant(BaseModel):
+class Applicant(Base):
     __tablename__ = "applicants"
-    
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    name = Column(String(200), nullable=False)
-    email = Column(String(200), nullable=False)
-    resume_text = Column(Text, nullable=True)
-    skills = Column(JSON, nullable=True)  # List of extracted skills
-    
-    # Enhanced fields from ResumeParser
-    phone = Column(String(50), nullable=True)
-    education = Column(JSON, nullable=True)  # List of education details
-    experience = Column(JSON, nullable=True)  # List of work experience
-    company_names = Column(JSON, nullable=True)  # List of companies worked at
-    designations = Column(JSON, nullable=True)  # List of job titles/designations
-    degrees = Column(JSON, nullable=True)  # List of degrees
-    college_names = Column(JSON, nullable=True)  # List of colleges/universities
-    total_experience = Column(Float, nullable=True)  # Total years of experience
-    
-    user = relationship("User", back_populates="applicant_profile")
 
-# Add relationship to User model
-from auth.models import User
-User.applicant_profile = relationship("Applicant", back_populates="user", uselist=False)
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    email = Column(String, index=True)
+    phone = Column(String, nullable=True)
+    resume_path = Column(String)
+    skills = Column(JSON, nullable=True)  # Extracted skills from resume
+    total_experience = Column(Integer, nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="applicant_profile")
+    interviews = relationship("Interview", back_populates="applicant")
+    offers = relationship("OfferLetter", back_populates="applicant")

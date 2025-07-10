@@ -34,6 +34,33 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+@router.post("/register", response_model=schemas.User)
+def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_username(db, username=user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    return crud.create_user(db=db, user=user)
+
+@router.post("/login")
+def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
+    db_user = crud.authenticate_user(db, username=user.username, password=user.password)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": db_user.username})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": db_user.id,
+            "username": db_user.username,
+            "role": db_user.role.value
+        }
+    }
+
 def require_role(role: str):
     def role_checker(current_user: User = Depends(get_current_user)):
         if current_user.role.value != role:

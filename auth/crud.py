@@ -1,17 +1,19 @@
 
 from sqlalchemy.orm import Session
-from auth.models import User
-from auth.schemas import UserCreate
-import bcrypt
+from auth import models, schemas
+from bcrypt import hashpw, gensalt, checkpw
+
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
 def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
+    return db.query(models.User).filter(models.User.username == username).first()
 
-def create_user(db: Session, user: UserCreate):
-    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
-    db_user = User(
+def create_user(db: Session, user: schemas.UserCreate):
+    hashed_password = hashpw(user.password.encode('utf-8'), gensalt()).decode('utf-8')
+    db_user = models.User(
         username=user.username,
-        password_hash=hashed_password.decode('utf-8'),
+        hashed_password=hashed_password,
         role=user.role
     )
     db.add(db_user)
@@ -19,11 +21,10 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(db_user)
     return db_user
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-
 def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(db, username)
-    if not user or not verify_password(password, user.password_hash):
+    if not user:
+        return False
+    if not checkpw(password.encode('utf-8'), user.hashed_password.encode('utf-8')):
         return False
     return user

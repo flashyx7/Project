@@ -1,18 +1,20 @@
 
-from sqlalchemy import Column, String, Text, JSON, Integer, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey
 from sqlalchemy.orm import relationship
-from core.models import BaseModel
+from database import Base
 
-class JobPosition(BaseModel):
-    __tablename__ = "job_positions"
-    
-    title = Column(String(200), nullable=False)
-    description = Column(Text, nullable=False)
-    skills = Column(JSON, nullable=False)  # List of required skills
-    company_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    
-    company = relationship("User", back_populates="job_positions")
+class Job(Base):
+    __tablename__ = "jobs"
 
-# Add relationship to User model
-from auth.models import User
-User.job_positions = relationship("JobPosition", back_populates="company")
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String)
+    skills = Column(JSON)  # List of required skills
+    salary = Column(Float, nullable=True)
+    location = Column(String, nullable=True)
+    company_id = Column(Integer, ForeignKey("users.id"))
+    
+    # Relationships
+    company = relationship("User", back_populates="jobs")
+    interviews = relationship("Interview", back_populates="position")
+    offers = relationship("OfferLetter", back_populates="position")

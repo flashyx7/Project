@@ -39,6 +39,15 @@ app.add_middleware(
 app.mount("/offer_letters", StaticFiles(directory="offer_letters"), name="offer_letters")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Serve CSS and JS files at root level for easier access
+@app.get("/styles.css")
+async def get_styles():
+    return FileResponse("static/styles.css", media_type="text/css")
+
+@app.get("/script.js")
+async def get_script():
+    return FileResponse("static/script.js", media_type="text/javascript")
+
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(jobs_router, prefix="/jobs", tags=["Jobs"])
