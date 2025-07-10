@@ -67,11 +67,18 @@ async def register_applicant(
 def list_applicants(
     skip: int = 0, 
     limit: int = 100,
-    current_user: User = Depends(require_role("company")),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List all applicants (HR only)"""
-    return crud.get_applicants(db, skip=skip, limit=limit)
+    """List applicants - companies see all, applicants see only their own"""
+    if current_user.role.value == "company":
+        return crud.get_applicants(db, skip=skip, limit=limit)
+    elif current_user.role.value == "applicant":
+        # Return only the current user's applicant profile
+        applicant = crud.get_applicant_by_user_id(db, user_id=current_user.id)
+        return [applicant] if applicant else []
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
 @router.get("/{applicant_id}", response_model=schemas.Applicant)
 def get_applicant(

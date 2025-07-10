@@ -1,4 +1,3 @@
-# Adding missing import for Applicant model
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,6 +7,7 @@ from auth.router import get_current_user, require_role
 from auth.models import User
 from applicants.models import Applicant
 from interviews import schemas, crud
+from interviews.models import Interview
 from jobs.crud import get_job
 from applicants.crud import get_applicant
 
