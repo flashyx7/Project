@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, Integer, String, Boolean, Enum
 from sqlalchemy.orm import relationship
 from database import Base
@@ -16,7 +15,7 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(Enum(UserRole))
     is_active = Column(Boolean, default=True)
-    
+
     # Relationships
-    jobs = relationship("JobPosition", back_populates="company")
+    jobs = relationship("JobPosition", back_populates="company", foreign_keys="JobPosition.company_id")
     applicant_profile = relationship("Applicant", back_populates="user", uselist=False)
