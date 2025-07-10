@@ -4,10 +4,12 @@ from interviews.models import Interview
 from interviews.schemas import InterviewCreate, InterviewUpdate
 
 def create_interview(db: Session, interview: InterviewCreate):
+    from datetime import datetime
     db_interview = Interview(
         applicant_id=interview.applicant_id,
         position_id=interview.position_id,
-        date_time=interview.date_time
+        date_time=interview.date_time,
+        created_at=datetime.now()
     )
     db.add(db_interview)
     db.commit()
@@ -31,4 +33,5 @@ def update_interview(db: Session, interview_id: int, interview_update: Interview
     return db_interview
 
 def get_interviews_by_company(db: Session, company_id: int):
-    return db.query(Interview).join(Interview.position).filter_by(company_id=company_id).all()
+    from jobs.models import JobPosition
+    return db.query(Interview).join(JobPosition, Interview.position_id == JobPosition.id).filter(JobPosition.company_id == company_id).all()

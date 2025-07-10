@@ -12,11 +12,11 @@ try:
     columns = [column[1] for column in cursor.fetchall()]
     
     if 'created_at' not in columns:
-        # Add the created_at column with default current timestamp
-        cursor.execute("ALTER TABLE interviews ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
+        # For SQLite, we need to add the column without a default
+        cursor.execute("ALTER TABLE interviews ADD COLUMN created_at DATETIME")
         
         # Update existing records with current timestamp
-        cursor.execute("UPDATE interviews SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+        cursor.execute("UPDATE interviews SET created_at = datetime('now') WHERE created_at IS NULL")
         
         conn.commit()
         print("✅ Successfully added created_at column to interviews table")
