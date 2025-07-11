@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recruitment Tracker System</title>
     <link rel="stylesheet" href="/styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <meta name="description" content="Modern recruitment tracking system">
+    <meta name="theme-color" content="#6366f1">
 </head>
 <body>
     <div id="app">
@@ -81,41 +83,47 @@
             <!-- Dashboard Section -->
             <section id="dashboard-section" class="section">
                 <div class="dashboard">
-                    <h1>Dashboard</h1>
+                    <div class="section-header">
+                        <h1>Dashboard Overview</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">Track your recruitment metrics and activities</p>
+                    </div>
                     <div class="dashboard-stats">
                         <div class="stat-card">
                             <i class="fas fa-briefcase"></i>
                             <div>
                                 <h3 id="jobs-count">0</h3>
-                                <p>Active Jobs</p>
+                                <p>Active Positions</p>
                             </div>
                         </div>
                         <div class="stat-card">
                             <i class="fas fa-users"></i>
                             <div>
                                 <h3 id="applicants-count">0</h3>
-                                <p>Applicants</p>
+                                <p>Total Applicants</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <i class="fas fa-calendar"></i>
+                            <i class="fas fa-calendar-alt"></i>
                             <div>
                                 <h3 id="interviews-count">0</h3>
-                                <p>Interviews</p>
+                                <p>Scheduled Interviews</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <i class="fas fa-file-contract"></i>
+                            <i class="fas fa-file-signature"></i>
                             <div>
                                 <h3 id="offers-count">0</h3>
-                                <p>Offers</p>
+                                <p>Generated Offers</p>
                             </div>
                         </div>
                     </div>
                     <div class="recent-activities">
                         <h3>Recent Activities</h3>
                         <div id="activities-list" class="activities-list">
-                            <!-- Activities will be loaded here -->
+                            <div class="activity-item">
+                                <p>Welcome to your recruitment dashboard! Start by creating job positions or adding applicants.</p>
+                                <span class="activity-time">Getting started</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -124,9 +132,12 @@
             <!-- Jobs Section -->
             <section id="jobs-section" class="section">
                 <div class="section-header">
-                    <h1>Job Positions</h1>
+                    <div>
+                        <h1>Job Positions</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">Manage and track all open positions</p>
+                    </div>
                     <button class="btn btn-primary" onclick="showJobForm()" id="create-job-btn" style="display:none;">
-                        <i class="fas fa-plus"></i> Create Job
+                        <i class="fas fa-plus"></i> Create Position
                     </button>
                 </div>
                 
@@ -167,9 +178,12 @@
             <!-- Applicants Section -->
             <section id="applicants-section" class="section">
                 <div class="section-header">
-                    <h1>Applicants</h1>
+                    <div>
+                        <h1>Candidate Profiles</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">View and manage applicant information</p>
+                    </div>
                     <button class="btn btn-primary" onclick="showApplicantForm()" id="create-applicant-btn" style="display:none;">
-                        <i class="fas fa-plus"></i> Create Profile
+                        <i class="fas fa-user-plus"></i> Add Candidate
                     </button>
                 </div>
 
@@ -204,9 +218,12 @@
             <!-- Interviews Section -->
             <section id="interviews-section" class="section">
                 <div class="section-header">
-                    <h1>Interviews</h1>
+                    <div>
+                        <h1>Interview Schedule</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">Manage interview appointments and status</p>
+                    </div>
                     <button class="btn btn-primary" onclick="showInterviewForm()" id="create-interview-btn" style="display:none;">
-                        <i class="fas fa-plus"></i> Schedule Interview
+                        <i class="fas fa-calendar-plus"></i> Schedule Interview
                     </button>
                 </div>
 
@@ -244,9 +261,12 @@
             <!-- Offers Section -->
             <section id="offers-section" class="section">
                 <div class="section-header">
-                    <h1>Offer Letters</h1>
+                    <div>
+                        <h1>Offer Management</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">Generate and track job offers</p>
+                    </div>
                     <button class="btn btn-primary" onclick="showOfferForm()" id="create-offer-btn" style="display:none;">
-                        <i class="fas fa-plus"></i> Generate Offer
+                        <i class="fas fa-file-contract"></i> Generate Offer
                     </button>
                 </div>
 
@@ -287,7 +307,10 @@
             <!-- Matching Section -->
             <section id="matching-section" class="section">
                 <div class="section-header">
-                    <h1>Job Matching</h1>
+                    <div>
+                        <h1>Smart Matching</h1>
+                        <p style="margin: 0; color: var(--text-secondary);">AI-powered candidate-position matching</p>
+                    </div>
                 </div>
                 <div class="matching-controls">
                     <div class="form-group">
