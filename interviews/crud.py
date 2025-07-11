@@ -35,3 +35,11 @@ def update_interview(db: Session, interview_id: int, interview_update: Interview
 def get_interviews_by_company(db: Session, company_id: int):
     from jobs.models import JobPosition
     return db.query(Interview).join(JobPosition, Interview.position_id == JobPosition.id).filter(JobPosition.company_id == company_id).all()
+
+def delete_interview(db: Session, interview_id: int):
+    db_interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if db_interview:
+        db.delete(db_interview)
+        db.commit()
+        return {"message": "Interview deleted successfully"}
+    return None

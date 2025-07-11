@@ -41,14 +41,18 @@ def list_interviews(
 ):
     """List interviews"""
     if current_user.role.value == "company":
-        # Companies see interviews for their job positions
-        return crud.get_interviews_by_company(db, company_id=current_user.id)
+        # Companies see interviews for their job positions - filter out null applicant_id
+        interviews = crud.get_interviews_by_company(db, company_id=current_user.id)
+        return [interview for interview in interviews if interview.applicant_id is not None]
     else:
         # Applicants see their own interviews
         applicant = db.query(Applicant).filter(Applicant.user_id == current_user.id).first()
         if not applicant:
             return []
-        return db.query(Interview).filter(Interview.applicant_id == applicant.id).all()
+        return db.query(Interview).filter(
+            Interview.applicant_id == applicant.id,
+            Interview.applicant_id.isnot(None)
+        ).all()
 
 @router.put("/{interview_id}", response_model=schemas.Interview)
 def update_interview(
@@ -68,3 +72,21 @@ def update_interview(
         raise HTTPException(status_code=403, detail="Not authorized to update this interview")
 
     return crud.update_interview(db=db, interview_id=interview_id, interview_update=interview_update)
+
+@router.delete("/{interview_id}")
+def delete_interview(
+    interview_id: int,
+    current_user: User = Depends(require_role("company")),
+    db: Session = Depends(get_db)
+):
+    """Delete an interview"""
+    interview = crud.get_interview(db, interview_id=interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Verify the interview belongs to a job owned by this company
+    job = get_job(db, job_id=interview.position_id)
+    if not job or job.company_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this interview")
+
+    return crud.delete_interview(db=db, interview_id=interview_id)

@@ -289,23 +289,27 @@ async function loadDashboardData() {
 
 async function loadCompanyDashboard() {
     try {
-        const [jobsResponse, interviewsResponse, offersResponse] = await Promise.all([
+        const [jobsResponse, applicantsResponse, interviewsResponse, offersResponse] = await Promise.all([
             apiRequest('/jobs/'),
+            apiRequest('/applicants/'),
             apiRequest('/interviews/'),
             apiRequest('/offers/')
         ]);
 
-        if (jobsResponse.ok && interviewsResponse.ok && offersResponse.ok) {
+        if (jobsResponse.ok && applicantsResponse.ok && interviewsResponse.ok && offersResponse.ok) {
             const jobs = await jobsResponse.json();
+            const applicants = await applicantsResponse.json();
             const interviews = await interviewsResponse.json();
             const offers = await offersResponse.json();
 
             // Update dashboard stats if elements exist
             const jobsElement = document.getElementById('jobs-count');
+            const applicantsElement = document.getElementById('applicants-count');
             const interviewsElement = document.getElementById('interviews-count');
             const offersElement = document.getElementById('offers-count');
 
             if (jobsElement) jobsElement.textContent = jobs.length;
+            if (applicantsElement) applicantsElement.textContent = applicants.length;
             if (interviewsElement) interviewsElement.textContent = interviews.length;
             if (offersElement) offersElement.textContent = offers.length;
         }
@@ -316,19 +320,26 @@ async function loadCompanyDashboard() {
 
 async function loadApplicantDashboard() {
     try {
-        const [interviewsResponse, offersResponse] = await Promise.all([
+        const [applicantsResponse, interviewsResponse, offersResponse] = await Promise.all([
+            apiRequest('/applicants/'),
             apiRequest('/interviews/'),
             apiRequest('/offers/')
         ]);
 
-        if (interviewsResponse.ok && offersResponse.ok) {
+        if (applicantsResponse.ok && interviewsResponse.ok && offersResponse.ok) {
+            const applicants = await applicantsResponse.json();
             const interviews = await interviewsResponse.json();
             const offers = await offersResponse.json();
 
-            // Update dashboard stats if elements exist
+            // Update dashboard stats - for applicants, show total applicants, their interviews and offers
+            const jobsElement = document.getElementById('jobs-count');
+            const applicantsElement = document.getElementById('applicants-count');
             const interviewsElement = document.getElementById('interviews-count');
             const offersElement = document.getElementById('offers-count');
 
+            // Hide jobs count for applicants or show 0
+            if (jobsElement) jobsElement.textContent = '0';
+            if (applicantsElement) applicantsElement.textContent = applicants.length;
             if (interviewsElement) interviewsElement.textContent = interviews.length;
             if (offersElement) offersElement.textContent = offers.length;
         }
@@ -730,6 +741,7 @@ async function loadInterviews() {
                 <div class="card-actions">
                     ${currentUser.role === 'company' ? `
                         <button class="btn btn-primary" onclick="updateInterviewStatus(${interview.id})">Update Status</button>
+                        <button class="btn btn-danger" onclick="deleteInterview(${interview.id})">Delete</button>
                     ` : ''}
                 </div>
             `;
@@ -798,6 +810,26 @@ async function updateInterviewStatus(interviewId) {
             showToast('Network error. Please try again.', 'error');
         }
     };
+}
+
+async function deleteInterview(interviewId) {
+    if (confirm('Are you sure you want to delete this interview? This action cannot be undone.')) {
+        try {
+            const response = await apiRequest(`/interviews/${interviewId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showToast('Interview deleted successfully!', 'success');
+                loadInterviews();
+            } else {
+                const error = await response.json();
+                showToast(error.detail || 'Error deleting interview', 'error');
+            }
+        } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+        }
+    }
 }
 
 function showInterviewForm() {
