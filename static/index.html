@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +38,7 @@
                         <button class="tab-btn active" onclick="showAuthTab('login')">Login</button>
                         <button class="tab-btn" onclick="showAuthTab('register')">Register</button>
                     </div>
-                    
+
                     <!-- Login Form -->
                     <div id="login-form" class="auth-form active">
                         <h2>Login</h2>
@@ -140,7 +139,7 @@
                         <i class="fas fa-plus"></i> Create Position
                     </button>
                 </div>
-                
+
                 <div id="job-form" class="modal" style="display:none;">
                     <div class="modal-content">
                         <span class="close" onclick="hideJobForm()">&times;</span>
@@ -309,19 +308,55 @@
                 <div class="section-header">
                     <div>
                         <h1>Smart Matching</h1>
-                        <p style="margin: 0; color: var(--text-secondary);">AI-powered candidate-position matching</p>
+                        <p style="margin: 0; color: var(--text-secondary);">AI-powered job-candidate matching system</p>
                     </div>
                 </div>
-                <div class="matching-controls">
-                    <div class="form-group">
-                        <label>Minimum Match Percentage:</label>
-                        <input type="range" id="match-threshold" min="0" max="100" value="0" oninput="updateMatchThreshold(this.value)">
-                        <span id="threshold-value">0%</span>
-                    </div>
-                    <button class="btn btn-primary" onclick="findMatches()">Find Matches</button>
+
+                <div class="matching-tabs">
+                    <button class="tab-btn active" onclick="showMatchingTab('job-to-candidate')">Jobs to Candidates</button>
+                    <button class="tab-btn" onclick="showMatchingTab('candidate-to-job')">Candidates to Jobs</button>
                 </div>
-                <div id="matches-list" class="matches-grid">
-                    <!-- Matches will be loaded here -->
+
+                <!-- Job to Candidate Matching -->
+                <div id="job-to-candidate-tab" class="matching-tab active">
+                    <div class="matching-controls">
+                        <div class="form-group">
+                            <label for="match-threshold">Minimum Match Percentage: <span id="threshold-value">50%</span></label>
+                            <input type="range" id="match-threshold" min="0" max="100" value="50" 
+                                   oninput="updateMatchThreshold(this.value)">
+                        </div>
+                        <button class="btn btn-primary" onclick="findMatches()">
+                            <i class="fas fa-search"></i> Find Matches
+                        </button>
+                    </div>
+
+                    <div id="matches-list" class="matches-container">
+                        <!-- Job-to-candidate matches will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Candidate to Job Matching -->
+                <div id="candidate-to-job-tab" class="matching-tab">
+                    <div class="matching-controls">
+                        <div class="form-group">
+                            <label for="candidate-select">Select Candidate:</label>
+                            <select id="candidate-select">
+                                <option value="">Choose a candidate...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="candidate-match-threshold">Minimum Match Percentage: <span id="candidate-threshold-value">50%</span></label>
+                            <input type="range" id="candidate-match-threshold" min="0" max="100" value="50" 
+                                   oninput="updateCandidateMatchThreshold(this.value)">
+                        </div>
+                        <button class="btn btn-primary" onclick="findJobsForCandidate()">
+                            <i class="fas fa-search"></i> Find Matching Jobs
+                        </button>
+                    </div>
+
+                    <div id="candidate-matches-list" class="matches-container">
+                        <!-- Candidate-to-job matches will be displayed here -->
+                    </div>
                 </div>
             </section>
         </main>

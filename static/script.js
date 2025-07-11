@@ -896,10 +896,121 @@ async function saveOffer(event) {
 async function loadMatching() {
     // Initial load - will be populated when user clicks "Find Matches"
     document.getElementById('matches-list').innerHTML = '<p>Click "Find Matches" to see job-applicant matching results.</p>';
+    document.getElementById('candidate-matches-list').innerHTML = '<p>Select a candidate and click "Find Matching Jobs" to see results.</p>';
+    
+    // Load candidates for the dropdown
+    await loadCandidatesForMatching();
+}
+
+function showMatchingTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.matching-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.matching-tabs .tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab and activate button
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Find and activate the correct tab button
+    const tabButtons = document.querySelectorAll('.matching-tabs .tab-btn');
+    tabButtons.forEach(btn => {
+        if ((tabName === 'job-to-candidate' && btn.textContent.includes('Jobs to Candidates')) ||
+            (tabName === 'candidate-to-job' && btn.textContent.includes('Candidates to Jobs'))) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+async function loadCandidatesForMatching() {
+    try {
+        const response = await apiRequest('/applicants/');
+        if (response.ok) {
+            const applicants = await response.json();
+            const select = document.getElementById('candidate-select');
+            select.innerHTML = '<option value="">Choose a candidate...</option>';
+
+            applicants.forEach(applicant => {
+                const option = document.createElement('option');
+                option.value = applicant.id;
+                option.textContent = `${applicant.name} (${applicant.email})`;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading candidates:', error);
+    }
 }
 
 function updateMatchThreshold(value) {
     document.getElementById('threshold-value').textContent = value + '%';
+}
+
+function updateCandidateMatchThreshold(value) {
+    document.getElementById('candidate-threshold-value').textContent = value + '%';
+}
+
+async function findJobsForCandidate() {
+    const candidateId = document.getElementById('candidate-select').value;
+    const threshold = document.getElementById('candidate-match-threshold').value;
+
+    if (!candidateId) {
+        showToast('Please select a candidate first', 'error');
+        return;
+    }
+
+    try {
+        const response = await apiRequest(`/matching/applicants/${candidateId}/matches?min_match_percentage=${threshold}`);
+        
+        if (!response.ok) {
+            showToast('Error finding job matches for candidate', 'error');
+            return;
+        }
+
+        const data = await response.json();
+        const matchesList = document.getElementById('candidate-matches-list');
+        matchesList.innerHTML = '';
+
+        if (data.job_matches.length === 0) {
+            matchesList.innerHTML = '<p>No matching jobs found for this candidate with the current threshold.</p>';
+            return;
+        }
+
+        // Create header
+        const header = document.createElement('div');
+        header.className = 'matches-header';
+        header.innerHTML = `
+            <h3>Matching Jobs for ${data.applicant_name}</h3>
+            <p>Found ${data.total_matches} job matches</p>
+        `;
+        matchesList.appendChild(header);
+
+        // Display job matches
+        data.job_matches.forEach(match => {
+            const matchItem = document.createElement('div');
+            matchItem.className = 'match-item';
+            matchItem.innerHTML = `
+                <div class="match-header">
+                    <h3>${match.title}</h3>
+                    <div class="match-percentage">${match.match_percentage}%</div>
+                </div>
+                <p><strong>Description:</strong> ${match.description}</p>
+                <div class="matched-skills">
+                    <strong>Matched Skills:</strong>
+                    ${match.matched_skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            `;
+            matchesList.appendChild(matchItem);
+        });
+
+        showToast(`Found ${data.total_matches} job matches!`, 'success');
+    } catch (error) {
+        showToast('Error finding job matches for candidate', 'error');
+    }
 }
 
 async function findMatches() {
