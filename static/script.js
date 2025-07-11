@@ -1,4 +1,3 @@
-
 // Global variables
 let currentUser = null;
 let authToken = null;
@@ -35,7 +34,7 @@ function showAuthTab(tabName) {
 
     // Show selected form and activate tab
     document.getElementById(`${tabName}-form`).classList.add('active');
-    
+
     // Find and activate the correct tab button
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
@@ -73,7 +72,7 @@ async function login(event) {
             if (userResponse.ok) {
                 currentUser = await userResponse.json();
                 console.log('User profile loaded:', currentUser);
-                
+
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -153,14 +152,14 @@ function logout() {
 function showLoggedInState() {
     const authSection = document.getElementById('auth-section');
     if (authSection) authSection.style.display = 'none';
-    
+
     // Show all navigation links
     const navLinks = ['dashboard-link', 'jobs-link', 'applicants-link', 'interviews-link', 'offers-link', 'matching-link', 'logout-link'];
     navLinks.forEach(linkId => {
         const link = document.getElementById(linkId);
         if (link) link.style.display = 'inline-block';
     });
-    
+
     // Hide auth link
     const authLink = document.getElementById('auth-link');
     if (authLink) authLink.style.display = 'none';
@@ -177,7 +176,7 @@ function showLoggedInState() {
         const createJobBtn = document.getElementById('create-job-btn');
         const createInterviewBtn = document.getElementById('create-interview-btn');
         const createOfferBtn = document.getElementById('create-offer-btn');
-        
+
         if (createJobBtn) createJobBtn.style.display = 'block';
         if (createInterviewBtn) createInterviewBtn.style.display = 'block';
         if (createOfferBtn) createOfferBtn.style.display = 'block';
@@ -189,18 +188,18 @@ function showLoggedInState() {
 
 function showLoggedOutState() {
     document.getElementById('auth-section').style.display = 'block';
-    
+
     // Hide all navigation links except auth
     const navLinks = ['dashboard-link', 'jobs-link', 'applicants-link', 'interviews-link', 'offers-link', 'matching-link', 'logout-link'];
     navLinks.forEach(linkId => {
         const link = document.getElementById(linkId);
         if (link) link.style.display = 'none';
     });
-    
+
     // Show auth link
     const authLink = document.getElementById('auth-link');
     if (authLink) authLink.style.display = 'inline-block';
-    
+
     // Hide all create buttons
     const buttons = ['create-job-btn', 'create-applicant-btn', 'create-interview-btn', 'create-offer-btn'];
     buttons.forEach(btnId => {
@@ -302,7 +301,7 @@ async function loadCompanyDashboard() {
             // Update dashboard stats if elements exist
             const jobsElement = document.getElementById('jobs-count');
             const interviewsElement = document.getElementById('interviews-count');
-            
+
             if (jobsElement) jobsElement.textContent = jobs.length;
             if (interviewsElement) interviewsElement.textContent = interviews.length;
         }
@@ -325,7 +324,7 @@ async function loadApplicantDashboard() {
             // Update dashboard stats if elements exist
             const interviewsElement = document.getElementById('interviews-count');
             const offersElement = document.getElementById('offers-count');
-            
+
             if (interviewsElement) interviewsElement.textContent = interviews.length;
             if (offersElement) offersElement.textContent = offers.length;
         }
@@ -521,7 +520,7 @@ function showApplicantDetails(applicant) {
     if (!modal) {
         createApplicantDetailsModal();
     }
-    
+
     const modalContent = document.getElementById('applicant-details-content');
     modalContent.innerHTML = `
         <h2>${applicant.name}</h2>
@@ -530,7 +529,7 @@ function showApplicantDetails(applicant) {
             <p><strong>Phone:</strong> ${applicant.phone || 'Not provided'}</p>
             <p><strong>Total Experience:</strong> ${applicant.total_experience ? applicant.total_experience + ' years' : 'Not specified'}</p>
         </div>
-        
+
         ${applicant.skills && applicant.skills.length > 0 ? `
         <div class="details-section">
             <h3>Skills</h3>
@@ -539,7 +538,7 @@ function showApplicantDetails(applicant) {
             </div>
         </div>
         ` : ''}
-        
+
         ${applicant.education && applicant.education.length > 0 ? `
         <div class="details-section">
             <h3>Education</h3>
@@ -548,7 +547,7 @@ function showApplicantDetails(applicant) {
             </ul>
         </div>
         ` : ''}
-        
+
         ${applicant.experience && applicant.experience.length > 0 ? `
         <div class="details-section">
             <h3>Experience</h3>
@@ -557,7 +556,7 @@ function showApplicantDetails(applicant) {
             </ul>
         </div>
         ` : ''}
-        
+
         ${applicant.company_names && applicant.company_names.length > 0 ? `
         <div class="details-section">
             <h3>Previous Companies</h3>
@@ -566,7 +565,7 @@ function showApplicantDetails(applicant) {
             </div>
         </div>
         ` : ''}
-        
+
         ${applicant.designations && applicant.designations.length > 0 ? `
         <div class="details-section">
             <h3>Designations</h3>
@@ -575,7 +574,7 @@ function showApplicantDetails(applicant) {
             </div>
         </div>
         ` : ''}
-        
+
         ${applicant.degrees && applicant.degrees.length > 0 ? `
         <div class="details-section">
             <h3>Degrees</h3>
@@ -584,7 +583,7 @@ function showApplicantDetails(applicant) {
             </div>
         </div>
         ` : ''}
-        
+
         ${applicant.college_names && applicant.college_names.length > 0 ? `
         <div class="details-section">
             <h3>Colleges</h3>
@@ -594,7 +593,7 @@ function showApplicantDetails(applicant) {
         </div>
         ` : ''}
     `;
-    
+
     document.getElementById('applicant-details-modal').style.display = 'block';
 }
 
@@ -677,7 +676,7 @@ async function saveApplicant(event) {
         } else {
             const error = await response.json();
             console.error('Applicant creation error:', error);
-            
+
             // Handle different error formats
             let errorMessage = 'Error creating applicant profile';
             if (error.detail) {
@@ -689,7 +688,7 @@ async function saveApplicant(event) {
                     errorMessage = JSON.stringify(error.detail);
                 }
             }
-            
+
             showToast(errorMessage, 'error');
         }
     } catch (error) {
@@ -735,6 +734,66 @@ async function loadInterviews() {
     } catch (error) {
         showToast('Error loading interviews', 'error');
     }
+}
+
+async function updateInterviewStatus(interviewId) {
+    // Create a custom modal for status selection
+    const statusModal = document.createElement('div');
+    statusModal.className = 'modal';
+    statusModal.style.display = 'block';
+    statusModal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            <h2>Update Interview Status</h2>
+            <form id="status-update-form">
+                <div class="form-group">
+                    <label for="status-select">Select New Status:</label>
+                    <select id="status-select" required>
+                        <option value="">Choose status...</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="rescheduled">Rescheduled</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(statusModal);
+
+    // Handle form submission
+    document.getElementById('status-update-form').onsubmit = async function(event) {
+        event.preventDefault();
+        const newStatus = document.getElementById('status-select').value;
+
+        if (!newStatus) {
+            showToast('Please select a status', 'error');
+            return;
+        }
+
+        try {
+            const response = await apiRequest(`/interviews/${interviewId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                showToast('Interview status updated successfully!', 'success');
+                statusModal.remove();
+                loadInterviews();
+            } else {
+                const error = await response.json();
+                showToast(error.detail || 'Error updating interview status', 'error');
+            }
+        } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+        }
+    };
 }
 
 function showInterviewForm() {
@@ -847,18 +906,57 @@ async function findMatches() {
     const threshold = document.getElementById('match-threshold').value;
 
     try {
-        const response = await apiRequest(`/matching/matches?min_match_percentage=${threshold}`);
-        const matches = await response.json();
+        // Get all jobs and applicants first
+        const [jobsResponse, applicantsResponse] = await Promise.all([
+            apiRequest('/jobs/'),
+            apiRequest('/applicants/')
+        ]);
+
+        if (!jobsResponse.ok || !applicantsResponse.ok) {
+            showToast('Error loading data for matching', 'error');
+            return;
+        }
+
+        const jobs = await jobsResponse.json();
+        const applicants = await applicantsResponse.json();
 
         const matchesList = document.getElementById('matches-list');
         matchesList.innerHTML = '';
 
-        if (matches.length === 0) {
+        let allMatches = [];
+
+        // For each job, find matching candidates
+        for (const job of jobs) {
+            try {
+                const response = await apiRequest(`/matching/jobs/${job.id}/candidates?min_match_percentage=${threshold}`);
+                if (response.ok) {
+                    const jobMatches = await response.json();
+                    jobMatches.candidates.forEach(candidate => {
+                        allMatches.push({
+                            job_title: job.title,
+                            job_id: job.id,
+                            applicant_name: candidate.name,
+                            applicant_email: candidate.email,
+                            applicant_id: candidate.applicant_id,
+                            match_percentage: candidate.match_percentage,
+                            matched_skills: candidate.matched_skills
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error(`Error getting matches for job ${job.id}:`, error);
+            }
+        }
+
+        if (allMatches.length === 0) {
             matchesList.innerHTML = '<p>No matches found with the current threshold.</p>';
             return;
         }
 
-        matches.forEach(match => {
+        // Sort by match percentage
+        allMatches.sort((a, b) => b.match_percentage - a.match_percentage);
+
+        allMatches.forEach(match => {
             const matchItem = document.createElement('div');
             matchItem.className = 'match-item';
             matchItem.innerHTML = `
@@ -874,6 +972,8 @@ async function findMatches() {
             `;
             matchesList.appendChild(matchItem);
         });
+
+        showToast(`Found ${allMatches.length} matches!`, 'success');
     } catch (error) {
         showToast('Error finding matches', 'error');
     }
