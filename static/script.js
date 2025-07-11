@@ -289,21 +289,25 @@ async function loadDashboardData() {
 
 async function loadCompanyDashboard() {
     try {
-        const [jobsResponse, interviewsResponse] = await Promise.all([
+        const [jobsResponse, interviewsResponse, offersResponse] = await Promise.all([
             apiRequest('/jobs/'),
-            apiRequest('/interviews/')
+            apiRequest('/interviews/'),
+            apiRequest('/offers/')
         ]);
 
-        if (jobsResponse.ok && interviewsResponse.ok) {
+        if (jobsResponse.ok && interviewsResponse.ok && offersResponse.ok) {
             const jobs = await jobsResponse.json();
             const interviews = await interviewsResponse.json();
+            const offers = await offersResponse.json();
 
             // Update dashboard stats if elements exist
             const jobsElement = document.getElementById('jobs-count');
             const interviewsElement = document.getElementById('interviews-count');
+            const offersElement = document.getElementById('offers-count');
 
             if (jobsElement) jobsElement.textContent = jobs.length;
             if (interviewsElement) interviewsElement.textContent = interviews.length;
+            if (offersElement) offersElement.textContent = offers.length;
         }
     } catch (error) {
         console.error('Error loading company dashboard:', error);
@@ -838,16 +842,58 @@ async function saveInterview(event) {
 async function loadOffers() {
     try {
         const response = await apiRequest('/offers/');
-        const offers = await response.json();
-
-        const offersList = document.getElementById('offers-list');
-        offersList.innerHTML = '';
-
-        // For now, show placeholder since offers endpoint might not return list
-        offersList.innerHTML = '<p>Offers functionality implemented. Use the Generate Offer button to create offer letters.</p>';
+        if (response.ok) {
+            const offers = await response.json();
+            displayOffers(offers);
+        } else {
+            showToast('Error loading offers', 'error');
+        }
     } catch (error) {
         showToast('Error loading offers', 'error');
     }
+}
+
+function displayOffers(offers) {
+    const offersList = document.getElementById('offers-list');
+    offersList.innerHTML = '';
+
+    if (offers.length === 0) {
+        offersList.innerHTML = '<p>No offer letters generated yet. Use the Generate Offer button to create offer letters.</p>';
+        return;
+    }
+
+    offers.forEach(async (offer) => {
+        // Get applicant and job details
+        try {
+            const [applicantResponse, jobResponse] = await Promise.all([
+                apiRequest(`/applicants/${offer.applicant_id}`),
+                apiRequest(`/jobs/${offer.position_id}`)
+            ]);
+
+            const applicant = applicantResponse.ok ? await applicantResponse.json() : null;
+            const job = jobResponse.ok ? await jobResponse.json() : null;
+
+            const offerCard = document.createElement('div');
+            offerCard.className = 'card';
+            offerCard.innerHTML = `
+                <h3>Offer Letter #${offer.id}</h3>
+                <p><strong>Candidate:</strong> ${applicant ? applicant.name : 'Unknown'}</p>
+                <p><strong>Position:</strong> ${job ? job.title : 'Unknown Position'}</p>
+                <p><strong>Salary:</strong> $${offer.salary || 'Not specified'}</p>
+                <p><strong>Start Date:</strong> ${offer.start_date || 'Not specified'}</p>
+                <p><strong>Generated:</strong> ${new Date(offer.created_at).toLocaleDateString()}</p>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="downloadOffer(${offer.id})">Download PDF</button>
+                    ${currentUser.role === 'company' ? `
+                        <button class="btn btn-danger" onclick="deleteOffer(${offer.id})">Delete</button>
+                    ` : ''}
+                </div>
+            `;
+            offersList.appendChild(offerCard);
+        } catch (error) {
+            console.error('Error loading offer details:', error);
+        }
+    });
 }
 
 function showOfferForm() {
@@ -880,15 +926,73 @@ async function saveOffer(event) {
             const offer = await response.json();
             showToast('Offer letter generated successfully!', 'success');
             hideOfferForm();
-
-            // Download the generated offer letter
-            window.open(`${API_BASE}/offers/${offer.id}`, '_blank');
+            loadOffers(); // Refresh the offers list
+            
+            // Automatically download the generated offer letter
+            downloadOffer(offer.id);
         } else {
             const error = await response.json();
             showToast(error.detail || 'Error generating offer letter', 'error');
         }
     } catch (error) {
         showToast('Network error. Please try again.', 'error');
+    }
+}
+
+async function downloadOffer(offerId) {
+    try {
+        const response = await apiRequest(`/offers/${offerId}`);
+        
+        if (response.ok) {
+            // Get the filename from response headers or use a default
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = `offer_letter_${offerId}.pdf`;
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+            
+            // Convert response to blob and download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Offer letter downloaded successfully!', 'success');
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Error downloading offer letter', 'error');
+        }
+    } catch (error) {
+        showToast('Error downloading offer letter', 'error');
+    }
+}
+
+async function deleteOffer(offerId) {
+    if (confirm('Are you sure you want to delete this offer letter? This action cannot be undone.')) {
+        try {
+            const response = await apiRequest(`/offers/${offerId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showToast('Offer letter deleted successfully!', 'success');
+                loadOffers();
+            } else {
+                const error = await response.json();
+                showToast(error.detail || 'Error deleting offer letter', 'error');
+            }
+        } catch (error) {
+            showToast('Network error. Please try again.', 'error');
+        }
     }
 }
 

@@ -21,13 +21,16 @@ def list_offers(
 ):
     """List offers - companies see all, applicants see their own"""
     if current_user.role.value == "company":
-        return crud.get_offers(db)
+        offers = crud.get_offers(db)
+        # Filter out offers with null applicant_id to prevent validation errors
+        return [offer for offer in offers if offer.applicant_id is not None]
     else:
         # For applicants, get offers for their applicant profile
         from applicants.crud import get_applicant_by_user_id
         applicant = get_applicant_by_user_id(db, user_id=current_user.id)
         if applicant:
-            return crud.get_offers_by_applicant_id(db, applicant_id=applicant.id)
+            offers = crud.get_offers_by_applicant_id(db, applicant_id=applicant.id)
+            return [offer for offer in offers if offer.applicant_id is not None]
         return []
 
 @router.post("/", response_model=schemas.OfferLetter)
@@ -66,6 +69,7 @@ def generate_offer_letter(
 @router.get("/{offer_id}")
 def download_offer_letter(
     offer_id: int,
+    token: str = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
